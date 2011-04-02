@@ -1,0 +1,391 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"> 
+
+<html> 
+<head> 
+<title>Cells Cheat Sheet</title> 
+
+<style type="text/css"> 
+<!-- 
+body{ 
+    background:#eee; 
+    color:#333; 
+    font: 11px Arial, sans-serif; 
+}
+table { 
+    margin:5px; 
+    border:1px solid #ccc; 
+}
+
+
+
+.left {
+  width: 120px;
+}
+
+.heading{ 
+    background:#ddd; 
+}
+
+.box {
+  width: 540px;
+  border: 1px solid black;
+}
+--> 
+</style> 
+</head> 
+<body> 
+
+<div class="box">
+<h1>Generator</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      Generate <code>CartCell</code>
+    </td>
+    <td><code>rails g cell Cart show update</code></td> 
+  </tr> 
+  
+  <tr class="heading"> 
+    <td class="left">
+      HAML views</code>
+    </td>
+    <td><code>rails g cell Cart show update -e haml</code></td> 
+  </tr> 
+  
+  <tr class="heading"> 
+    <td class="left">
+      RSpec test</code>
+    </td>
+    <td><code>rails g cell Cart show update -t rspec</code></td> 
+  </tr> 
+</table>
+</div>
+
+
+
+<div class="box">
+<h1>Rendering & Options Processing</h1>
+
+<table> 
+  
+  <tr class="heading"> 
+    <td class="left">
+      Render cell
+    </td>
+    <td><code>render_cell :cart, :show</code></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      Pass keyword options
+    </td>
+    <td><code>render_cell :cart, :show, :user => current_user</code>
+    
+    <pre>def show(opts)
+  user = opts[:user]
+</pre>
+    
+    </td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      state-args with multiple parameters
+    </td>
+    <td><pre>render_cell :cart, :show, current_user, Item.all</pre>
+    
+    <pre>def show(user, items)
+  @name = user.name
+</pre>
+    
+    </td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      state-args with defaults
+    </td>
+    <td><pre>render_cell :cart, :show, current_user</pre>
+    
+    <pre>def show(user, items=[])
+  items.each do |item|
+  
+</pre>
+    
+    </td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      Use #options (deprecated)
+    </td>
+    <td><pre>def show
+  user = options[:user]
+</pre></td> 
+  </tr>
+  
+</table> 
+</div>
+
+
+
+
+<div class="box">
+<h1>View Rendering</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      Render <code>app/cells/cart/show.haml</code>
+    </td>
+    <td><pre>def show
+  @items = current_items
+  
+  render
+end</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      alternative view
+    </td>
+    <td><pre>def update
+  render :view => :show
+end</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      with layout
+    </td>
+    <td><pre>render :layout => :boxed</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      pass locals
+    </td>
+    <td><pre>render :locals => {:items => @items}</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      invoke alternative state method
+    </td>
+    <td><pre>def show
+  render :state => :update
+  # => will send mail, too!
+end
+
+def update
+  send_mail
+  render
+end</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      double render
+    </td>
+    <td><pre>def show
+  "&lt;div&gt;" + render(:view => header) + 
+    render + "&lt;/div&gt;"
+end</pre></td> 
+  </tr>
+</table>
+</div>
+
+
+
+<div class="box">
+<h1>Control Flow & Initialization</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      Redirecting
+    </td>
+    <td><pre>@box = render_cell(:cart, :show) do |cart|
+  redirect_to "/login" and return if cart.empty?
+end</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      Initialization
+    </td>
+    <td><pre>@box = render_cell(:cart, :show) do |cart|
+  cart.highlight! if current_user.vip?
+end</pre></td> 
+  </tr> 
+</table>
+</div>
+
+
+
+<div class="box">
+<h1>View Inheritance</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      Inheritance
+    </td>
+    <td><pre>
+|-- cells
+|   |-- cart_cell.rb
+|   |-- cart
+|   |   `-- show.haml
+|   |-- vip_cart_cell.rb
+|   |-- vip</pre>
+    
+    <pre>class VipCartCell < CartCell
+  def show
+    render  # => will use cart/show.
+  end
+</pre></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      Overriding views
+    </td>
+    <td><pre>
+|-- cells
+|   |-- cart_cell.rb
+|   |-- cart
+|   |   `-- header.haml
+|   |   `-- show.haml
+|   |-- vip_cart_cell.rb
+|   |-- vip
+|   |   `-- header.haml</pre>
+    
+    <pre>class VipCartCell < CartCell
+  def show
+    render :view => :header + # => renders vip_cart/header.
+      render                  # => renders cart/show.
+  end
+</pre></td> 
+  </tr>
+</table>
+</div>
+
+
+
+<div class="box">
+<h1>Builders</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      Add builder
+    </td>
+    <td><pre>CartCell.build do |opts|
+  VipCartCell if current_user.vip?
+end</pre>
+
+<code>render_cell :cart, show</code> uses <code>VipCartCell</code> if condition applies.
+
+</td> 
+  </tr>
+  
+</table>
+</div>
+
+
+<div class="box">
+<h1>Caching</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      with TTL
+    </td>
+    <td><pre>class CartCell < Cell::Base
+  cache :show, :expires_in => 5.minutes</pre>
+</td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      custom cache key
+    </td>
+    <td><pre>class CartCell < Cell::Base
+  cache :show do
+    :user => current_user.name
+  end</pre>
+</td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      using options
+    </td>
+    <td><pre>render_cell :cart, :show, current_user
+    
+class CartCell < Cell::Base
+  cache :show do |user|
+    :user => user.id
+  end</pre>
+</td> 
+  </tr>
+  
+</table>
+</div>
+
+<div class="box">
+<h1>RUnit Testing</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      rendering
+    </td>
+    <td><pre>class CartCellTest < Cell::TestCase
+  tests CartCell
+  
+  it "shows user name" do
+    invoke :show, :user => @user_1
+    assert_select ".name", "Mr. Fixture User"</pre>
+</td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      unit test
+    </td>
+    <td><pre>it "responds to #vip?" do
+    assert cell(:cart, :user => @user_1).vip?
+</td> 
+  </tr>
+  
+</table>
+</div>
+
+
+
+<div class="box">
+<h1>Configuration</h1>
+
+<table> 
+  <tr class="heading"> 
+    <td class="left">
+      Adding view paths
+    </td>
+    <td><code>Cell::Base.append_view_path "app/view_models"</code></td> 
+  </tr>
+  
+  <tr class="heading"> 
+    <td class="left">
+      In Initializer
+    </td>
+    <td><pre>Cells.setup do |config|
+  config.append_view_path "app/view_models"
+end</pre></td> 
+  </tr> 
+</table>
+</div>
+
+</body> 
+</html>  
